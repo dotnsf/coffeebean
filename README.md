@@ -1,10 +1,10 @@
 # Coffeebean
 
-Yet Anohter Tealeaf
+Google Analytics like web analytic tool.
 
 ## Overview
 
-Yet Anohter Tealeaf.
+Google Analytics like web analytic tool written in JavaScript.
 
 
 ## Pre-requisite
