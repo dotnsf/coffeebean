@@ -19,7 +19,7 @@ Google Analytics like web analytic tool written in JavaScript.
 
 - Edit settings.js with your Cloudant username and password.
 
-- (Optional)Edit settings.js with Basic Authentication username and password ifyou want to use Basic Authentication.
+- (Optional)Edit settings.js with Basic Authentication username and password if you want to use Basic Authentication.
 
 - Install libraries
 
