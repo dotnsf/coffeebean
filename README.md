@@ -21,6 +21,8 @@ Google Analytics like web analytic tool written in JavaScript.
 
 - (Optional)Edit settings.js with Basic Authentication username and password if you want to use Basic Authentication.
 
+- (Optional)Edit public/coffeebean.js (L.103) with your application server name.
+
 - Install libraries
 
     - $ npm install
@@ -29,6 +31,11 @@ Google Analytics like web analytic tool written in JavaScript.
 
     - $ node app
 
+## How to use
+
+- load coffeebean.js in your HTML page(see public/index.html and public/index2.html for example).
+
+- Enjoy!
 
 ## Licensing
 
