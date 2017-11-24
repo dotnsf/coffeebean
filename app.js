@@ -1,5 +1,12 @@
 //. app.js
 
+
+//. Cloudant REST APIs
+//. https://console.bluemix.net/docs/services/Cloudant/api/database.html#databases
+
+//. References
+//. http://www.atmarkit.co.jp/ait/articles/0910/26/news097.html
+
 var express = require( 'express' ),
     cfenv = require( 'cfenv' ),
     cloudantlib = require( 'cloudant' ),
@@ -43,6 +50,62 @@ cloudant.db.get( settings.cloudant_db, function( err, body ){
           db = null;
         }else{
           db = cloudant.db.use( settings.cloudant_db );
+
+          //. distinct(user_id) 検索用の Design Document
+          var postdata = {
+            _id: "_design/user_id_list",
+            language: "javascript",
+            views: {
+              user_id_list: {
+                map: "function( doc ){ if( doc.activity ){ emit( doc.activity.user_id, null ); } }",
+                reduce: "function( keys, values, rereduce ){ return null; }"
+              }
+            }
+          };
+
+          db.insert( postdata, function( err, body, header ){
+            if( err ){
+              console.log( err );
+            }else{
+              console.log( body );
+            }
+          });
+
+          //. by user_id 検索用の Design Document
+          var postdata1 = {
+            language: "query",
+            indexes: {
+              user_id_index: {
+                index: {
+                  default_analyzer: "keyword",
+                  default_field: {},
+                  selector: {},
+                  fields: [
+                    { name: "activity.user_id", type: "string" }
+                  ],
+                  index_array_lengths: true
+                }
+              },
+              datetime_index: {
+                index: {
+                  default_analyzer: "keyword",
+                  default_field: {},
+                  selector: {},
+                  fields: [
+                    { name: "datetime", type: "datetime" }
+                  ],
+                  index_array_lengths: true
+                }
+              }
+            }
+          };
+          db.insert( postdata1, function( err, body1, header1 ){
+            if( err1 ){
+              console.log( err1 );
+            }else{
+              console.log( body1 );
+            }
+          });
         }
       });
     }else{
@@ -66,7 +129,8 @@ app.post( '/activity', cors(), function( req, res ){
       var h = now.getHours(); h = ( ( h < 10 ) ? '0' : '' ) + h;
       var n = now.getMinutes(); n = ( ( n < 10 ) ? '0' : '' ) + n;
       var s = now.getSeconds(); s = ( ( s < 10 ) ? '0' : '' ) + s;
-      var ymdhns = y + "-" + m + "-" + d + " " + h + ":" + n + ":" + s;
+      var ms = now.getMilliseconds(); ms = ( ( ms < 10 ) ? '00' : ( ms < 100 ? '0' : '' ) ) + ms;
+      var ymdhns = y + "-" + m + "-" + d + " " + h + ":" + n + ":" + s + "." + ms;
 
       var param = {
         datetime: ymdhns,
@@ -139,6 +203,70 @@ app.get( '/activity/:id', function( req, res ){
   }
 });
 
+
+//. user_id 一覧
+//. https://stackoverflow.com/questions/2534376/how-do-i-do-the-sql-equivalent-of-distinct-in-couchdb
+//. GET https://cloudant_username.cloudant.com/activities/_design/user_id_list/_view/user_id_list?group=true
+app.get( '/user_ids', function( req, res ){
+  if( db ){
+    db.view( 'user_id_list', 'user_id_list', { group: true }, function( err, body ){
+      if( err ){
+        res.status( 400 );
+        res.write( JSON.stringify( { status: false, message: err }, 2, null ) );
+        res.end();
+      }else{
+        var ids = [];
+        body.rows.forEach( function( element ){
+          ids.push( element.key );
+        });
+        res.write( JSON.stringify( { status: true, body: ids }, 2, null ) );
+        res.end();
+      }
+    });
+  }else{
+    res.status( 400 );
+    res.write( JSON.stringify( { status: false, message: 'failed to initialize cloudant.' }, 2, null ) );
+    res.end();
+  }
+});
+
+//. user_id で検索
+//. https://qiita.com/shimac/items/42021a5372883a1edf7c
+app.get( '/activities/:user_id', function( req, res ){
+  var user_id = req.params.user_id;
+  if( user_id ){
+    if( db ){
+      var query = {
+        selector: {
+          "activity.user_id": {
+            "$eq": user_id
+          }
+        },
+        fields: [ "_id", "activity", "datetime" ],
+        sort: [ { "_id": "asc" } ]
+      };
+
+      db.find( query, function( err, body ){
+        if( err ){
+          res.status( 400 );
+          res.write( JSON.stringify( { status: false, message: err }, 2, null ) );
+          res.end();
+        }else{
+          res.write( JSON.stringify( { status: true, body: body.docs }, 2, null ) );
+          res.end();
+        }
+      });
+    }else{
+      res.status( 400 );
+      res.write( JSON.stringify( { status: false, message: 'failed to initialize cloudant.' }, 2, null ) );
+      res.end();
+    }
+  }else{
+    res.status( 400 );
+    res.write( JSON.stringify( { status: false, message: 'parameter user_id required.' }, 2, null ) );
+    res.end();
+  }
+});
 
 //. アクティビティ検索
 app.post( '/search', function( req, res ){

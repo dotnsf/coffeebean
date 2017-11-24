@@ -96,8 +96,24 @@ $(function(){
 });
 
 function postActivity( param ){
-  //console.log( param );
-  if( param ){
+  var href = location.href;
+  var url = '';
+  var n1 = href.indexOf( '//' );
+  if( n1 > -1 ){
+    var n2 = href.indexOf( '/', n1 + 2 );
+    if( n2 > -1 ){
+      url = href.substring( 0, n2 + 1 ) + 'activity';
+    }
+  }else{
+    var n2 = href.indexOf( '/' );
+    if( n2 > -1 ){
+      url = href.substring( 0, n2 + 1 ) + 'activity';
+    }
+  }
+
+  //console.log( 'url = ' + url ); //. http://localhost:xxxx/activity
+  if( param && url ){
+    console.log( param );
     $.ajax({
       type: 'POST',
       url: 'https://coffeebean.au-syd.mybluemix.net/activity',
