@@ -3,6 +3,7 @@
 var express = require( 'express' ),
     cfenv = require( 'cfenv' ),
     cloudantlib = require( 'cloudant' ),
+    cors = require( 'cors' ),
     multer = require( 'multer' ),
     basicAuth = require( 'basic-auth-connect' ),
     bodyParser = require( 'body-parser' ),
@@ -18,6 +19,7 @@ app.use( multer( { dest: './tmp/' } ).single( 'image_file' ) );
 app.use( bodyParser.urlencoded( { extended: true, limit: '10mb' } ) );
 app.use( bodyParser.json( { limit: '10mb' } ) );
 app.use( express.static( __dirname + '/public' ) );
+//app.use( cors() );
 
 if( settings.basic_username && settings.basic_password ){
   app.all( '*', basicAuth( function( user, pass ){
@@ -52,7 +54,7 @@ cloudant.db.get( settings.cloudant_db, function( err, body ){
 });
 
 //. アクティビティ追加
-app.post( '/activity', function( req, res ){
+app.post( '/activity', cors(), function( req, res ){
   if( db ){
     var activity = req.body;
     if( activity ){

@@ -97,17 +97,15 @@ $(function(){
 
 function postActivity( param ){
   //console.log( param );
-/*
   if( param ){
     $.ajax({
       type: 'POST',
-      url: './activity',
+      url: 'https://coffeebean.au-syd.mybluemix.net/activity',
       data: param
     }).done( function( result ){
       console.log( result );
     });
   }
-*/
 }
 
 function getId(){
