@@ -1,13 +1,98 @@
 <html>
 <head>
 <script src="//code.jquery.com/jquery-2.0.3.min.js"></script>
-<script src="./coffeebean.js?key=a"></script>
-<title>index</title>
+<title>user_ids</title>
+<script>
+$(function(){
+  $.ajax({
+    type: 'GET',
+    url: './user_ids',
+    success: function( data ){
+      var data = JSON.parse( data );
+      //console.log( data );
+      if( data && data.status && data.body ){
+        data.body.forEach( function( user_id ){
+          var a = "<a href='#' onClick='userActivities(\"" + user_id + "\")'>" + user_id + "</a><br/>";
+          $('#user_ids').append( a );
+        });
+      }
+    },
+    error: function(){
+      console.log( 'error' );
+    }
+  });
+});
+
+function userActivities( user_id ){
+  $.ajax({
+    type: 'GET',
+    url: './activities/' + user_id,
+    success: function( data ){
+      var data = JSON.parse( data );
+      //console.log( data );
+
+      if( data && data.status && data.body ){
+        //. sort by datetime
+        for( var i = 0; i < data.body.length - 1; i ++ ){
+          var element1 = data.body[i];
+          for( var j = i + 1; j < data.body.length; j ++ ){
+            var element2 = data.body[j];
+            if( element1.datetime > element2.datetime ){
+              var t = element1;
+              element1 = element2;
+              data.body[i] = element2;
+              element2 = t;
+              data.body[j] = t;
+            }
+          }
+        }
+
+        var table = '<table border="1"><tr><th>#</th><th>datetime</th><th>url</th><th>activity</th></tr>';
+        for( var i = 0; i < data.body.length - 1; i ++ ){
+          var element = data.body[i];
+          var id = element._id;
+          var activity = element.activity;
+          var datetime = element.datetime;
+          //console.log( activity );
+
+          var tr = '<tr><td>' + id + '</td><td>' + datetime + '</td><td>' + activity.body.url + '</td><td>' + activityToString( activity ) + '</td></tr>';
+          table += tr;
+        }
+        table += '</table>';
+        $('#user_activities').html( table );
+      }
+    },
+    error: function(){
+      console.log( 'error' );
+    }
+  });
+}
+
+function activityToString( activity ){
+  var s = "";
+  switch( activity.type ){
+  case 'load':
+    s = '<a href="#" title="<- ' + activity.body.referrer + ' [' + activity.body.userAgent + ']">' + activity.type + '</a>';
+    break;
+  case 'scroll':
+    s = '<a href="#" title="[' + activity.body.userAgent + ']">' + activity.type + '(' + activity.body.top + ')</a>';
+    break;
+  case 'click_a':
+    s = '<a href="#" title="-> ' + activity.body.href + ' [' + activity.body.userAgent + ']">' + activity.type + '</a>';
+    break;
+  case 'scroll_bottom':
+    s = '<a href="#" title="[' + activity.body.userAgent + ']">' + activity.type + '</a>';
+    break;
+  }
+
+  return s;
+}
+</script>
 </head>
 <body>
-<h1>index</h1>
+<div id="user_ids"></div>
 <hr/>
-<a href="./index2.html">index2</a>
+<div id="user_activities"></div>
 </body>
 </html>
 
