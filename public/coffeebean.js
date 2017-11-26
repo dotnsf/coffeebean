@@ -48,7 +48,7 @@ $(function(){
     var param = {
       key: key,
       user_id: id,
-      type: 'click_a',
+      type: 'click',
       body: {
         url: href,
         href: target,
@@ -60,21 +60,28 @@ $(function(){
   });
 
   //. スクロールしたら記録
+  var timer = false;
   $(window).scroll( function(){
-    var id = getId();
-    var scroll_top = $(this).scrollTop();
-    var param = {
-      key: key,
-      user_id: id,
-      type: 'scroll',
-      body: {
-        url: href,
-        top: scroll_top,
-        userAgent: ua,
-        referrer : referrer
-      }
-    };
-    postActivity( param );
+    if( timer !== false ){
+      clearTimeout( timer );
+    }
+    timer = setTimeout( function(){
+      //. scroll end
+      var id = getId();
+      var scroll_top = $(this).scrollTop();
+      var param = {
+        key: key,
+        user_id: id,
+        type: 'scroll',
+        body: {
+          url: href,
+          top: scroll_top,
+          userAgent: ua,
+          referrer : referrer
+        }
+      };
+      postActivity( param );
+    }, 200 );
 
     //. ページの最後までみたら記録
     var scrollHeight = $(document).height();
