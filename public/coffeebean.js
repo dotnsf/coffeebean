@@ -90,7 +90,7 @@ $(function(){
       var param = {
         user_id: id,
         //datetime: dt,
-        type: 'scroll_bottom',
+        type: 'bottom',
         body: {
           url: href,
           userAgent: ua,
