@@ -77,10 +77,10 @@ function activityToString( activity ){
   case 'scroll':
     s = '<a href="#" title="[' + activity.body.userAgent + ']">' + activity.type + '(' + activity.body.top + ')</a>';
     break;
-  case 'click_a':
+  case 'click':
     s = '<a href="#" title="-> ' + activity.body.href + ' [' + activity.body.userAgent + ']">' + activity.type + '</a>';
     break;
-  case 'scroll_bottom':
+  case 'bottom':
     s = '<a href="#" title="[' + activity.body.userAgent + ']">' + activity.type + '</a>';
     break;
   }
