@@ -3,6 +3,8 @@
 <script src="//code.jquery.com/jquery-2.0.3.min.js"></script>
 <title>user_ids</title>
 <script>
+var page_idx = -1;
+var replay_pages = [];
 $(function(){
   $.ajax({
     type: 'GET',
@@ -69,18 +71,20 @@ function userActivities( user_id ){
             }
             pages[activity.body.url] ++;
             path = [ { datetime: datetime, activity: activity } ];
-//          }else if( activity.type == 'bottom' ){
-//            path.push( { datetime: datetime, activity: activity } );
+          }else if( activity.type == 'bottom' ){
+            path.push( { datetime: datetime, activity: activity } );
           }
         }
         if( path != null ){
           paths.push( path );
         }
 
-        console.log( pages );
-        console.log( paths );
+        //console.log( pages );
+        //console.log( paths );
 
-        var table = '<table border="1"><tr><th>#</th><th>datetime</th><th>url</th><th>activity</th></tr>';
+        replay_pages = [];
+        var table = '<table id="table_' + user_id + '" border="1"><tr><th>#</th><th>datetime</th><th>url</th><th>activity</th></tr>';
+        var last_time;
         for( var i = 0; i < data.body.length - 1; i ++ ){
           var element = data.body[i];
           var id = element._id;
@@ -88,10 +92,33 @@ function userActivities( user_id ){
           var datetime = element.datetime;
           //console.log( activity );
 
-          var tr = '<tr><td>' + id + '</td><td>' + datetime + '</td><td>' + activity.body.url + '</td><td>' + activityToString( activity ) + '</td></tr>';
+          var tr = '<tr id="' + id + '"><td>' + id + '</td><td>' + datetime + '</td><td>' + activity.body.url + '</td><td>' + activityToString( activity ) + '</td></tr>';
           table += tr;
+
+          var new_time = ( new Date( datetime ) ).getTime();
+          if( i == 0 ){
+            $('#replay_web').html('<iframe id="replay_iframe" src="' + activity.body.url + '" width="90%" height="90%"></iframe>');
+          }else{
+            var ms = new_time - last_time;
+            var replay_page = { id: id, datetime: datetime, ms: ms, type: activity.type };
+            switch( activity.type ){
+            case 'load':
+              replay_page.url = activity.body.url;
+              break;
+            case 'scroll':
+              replay_page.top = activity.body.top;
+              break;
+            }
+            replay_pages.push( replay_page );
+          }
+
+          last_time = new_time;
         }
         table += '</table>';
+
+        //. replay
+        table += '<br/><input type="button" value="REPLAY" onClick="replay();"/>';
+
         $('#user_activities').html( table );
       }
     },
@@ -120,12 +147,48 @@ function activityToString( activity ){
 
   return s;
 }
+
+function replay(){
+  replay_page( 0 );
+}
+
+function replay_page( page_idx ){
+  if( page_idx < replay_pages.length ){
+    var page = replay_pages[page_idx];
+    //console.log( page );
+    var page_id = page.id;
+    var page_ms = page.ms;
+    var page_type = page.type;
+    switch( page_type ){
+    case 'load':
+      var url = page.url;
+      setTimeout( function(){
+        $('#replay_iframe').prop( 'src', url );
+        replay_page( page_idx + 1 );
+      }, page_ms );
+      break;
+    case 'scroll':
+      var top = page.top;
+      setTimeout( function(){
+        $('#replay_iframe').scrollTop( top );
+        replay_page( page_idx + 1 );
+      }, page_ms );
+      break;
+    default:
+      setTimeout( function(){
+        replay_page( page_idx + 1 );
+      }, page_ms );
+      break;
+    }
+  }
+}
 </script>
 </head>
 <body>
 <div id="user_ids"></div>
 <hr/>
 <div id="user_activities"></div>
+<div id="replay_web"></div>
 </body>
 </html>
 

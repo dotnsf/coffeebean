@@ -4,6 +4,9 @@
 //. Cloudant REST APIs
 //. https://console.bluemix.net/docs/services/Cloudant/api/database.html#databases
 
+//. npm cloudant
+//. https://www.npmjs.com/package/cloudant
+
 //. References
 //. http://www.atmarkit.co.jp/ait/articles/0910/26/news097.html
 
@@ -115,6 +118,79 @@ cloudant.db.get( settings.cloudant_db, function( err, body ){
     db = cloudant.db.use( settings.cloudant_db );
   }
 });
+
+
+//. DBリセット
+app.post( '/resetdb', function( req, res ){
+  cloudant.db.destroy( settings.cloudant_db, function( err, body ){
+    cloudant.db.create( settings.cloudant_db, function( err, body ){
+      if( err ){
+        db = null;
+        res.status( 400 );
+        res.write( JSON.stringify( { status: false, message: err }, 2, null ) );
+        res.end();
+      }else{
+        db = cloudant.db.use( settings.cloudant_db );
+
+        //. distinct(user_id) 検索用の Design Document
+        var postdata = {
+          _id: "_design/user_id_list",
+          language: "javascript",
+          views: {
+            user_id_list: {
+              map: "function( doc ){ if( doc.activity ){ emit( doc.activity.user_id, null ); } }",
+              reduce: "function( keys, values, rereduce ){ return null; }"
+            }
+          }
+        };
+
+        db.insert( postdata, function( err, body, header ){
+          if( err ){
+          }else{
+          }
+        });
+
+        //. by user_id 検索用の Design Document
+        var postdata1 = {
+          language: "query",
+          indexes: {
+            user_id_index: {
+              index: {
+                default_analyzer: "keyword",
+                default_field: {},
+                selector: {},
+                fields: [
+                  { name: "activity.user_id", type: "string" }
+                ],
+                index_array_lengths: true
+              }
+            },
+            datetime_index: {
+              index: {
+                default_analyzer: "keyword",
+                default_field: {},
+                selector: {},
+                fields: [
+                  { name: "datetime", type: "datetime" }
+                ],
+                index_array_lengths: true
+              }
+            }
+          }
+        };
+        db.insert( postdata1, function( err, body1, header1 ){
+          if( err1 ){
+          }else{
+          }
+        });
+
+        res.write( JSON.stringify( { status: true, body: body }, 2, null ) );
+        res.end();
+      }
+    });
+  });
+});
+
 
 //. アクティビティ追加
 app.post( '/activity', cors(), function( req, res ){
