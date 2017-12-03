@@ -1,8 +1,6 @@
 <html>
 <head>
 <script src="//code.jquery.com/jquery-2.0.3.min.js"></script>
-<link rel="stylesheet" href="./colorbox.css"/>
-<script src="./jquery-colorbox-min.js"></script>
 <title>user_ids</title>
 <script>
 var page_idx = -1;
@@ -99,13 +97,7 @@ function userActivities( user_id ){
 
           var new_time = ( new Date( datetime ) ).getTime();
           if( i == 0 ){
-            $('#replay_web').html('<iframe class="iframe" id="replay_iframe" src="./spoof?url=' + activity.body.url + '" width="90%" height="90%"></iframe>');
-            $('.iframe').colorbox({
-              iframe: true,
-              width: "90%",
-              height: "90%",
-              opacity: 0.7
-            });
+            $('#replay_web').html('<iframe class="iframe" id="replay_iframe" href="./spoof?url=' + activity.body.url + '" width="90%" height="90%"></iframe>');
           }else{
             var ms = new_time - last_time;
             var replay_page = { id: id, datetime: datetime, ms: ms, type: activity.type };
@@ -161,36 +153,40 @@ function replay(){
 }
 
 function replay_page( page_idx ){
+  $('tr').each( function( idx, elem ){
+    $(this).removeClass( 'active' );
+  });
   if( page_idx < replay_pages.length ){
     var page = replay_pages[page_idx];
     //console.log( page );
     var page_id = page.id;
     var page_ms = page.ms;
     var page_type = page.type;
+    $('#'+page_id).addClass( 'active' );
     switch( page_type ){
     case 'load':
       var url = page.url;
-      setTimeout( function(){
-        $('#replay_iframe').prop( 'src', url );
-        replay_page( page_idx + 1 );
-      }, page_ms );
+      $('#replay_iframe').prop( 'src', url );
       break;
     case 'scroll':
       var top = page.top;
-      setTimeout( function(){
-        $('#replay_iframe').scrollTop( top );
-        replay_page( page_idx + 1 );
-      }, page_ms );
+      $('#replay_iframe').scrollTop( top );
+      //$('body,html',$('#replay_iframe').contents()).animate( {scrollTop: top }, page_ms, 'swing' );
       break;
     default:
-      setTimeout( function(){
-        replay_page( page_idx + 1 );
-      }, page_ms );
       break;
     }
+    setTimeout( function(){
+      replay_page( page_idx + 1 );
+    }, page_ms );
   }
 }
 </script>
+<style>
+.active{
+  background-color: #ffcccc;
+}
+</style>
 </head>
 <body>
 <div id="user_ids"></div>

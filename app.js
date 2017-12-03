@@ -351,7 +351,7 @@ app.post( '/search', function( req, res ){
     res.end();
 });
 
-//. Anti Cross Site
+//. クロスサイト制約を突破する用
 app.get( '/spoof', function( req, res ){
   var url = req.params.url;
   if( url ){
@@ -364,7 +364,7 @@ app.get( '/spoof', function( req, res ){
       }
     }
 
-    var options1 = { url url, method: 'GET' };
+    var options1 = { url: url, method: 'GET' };
     request( options1, ( err1, res1, body1 ) => {
       if( err1 ){
         res.status( 400 );
