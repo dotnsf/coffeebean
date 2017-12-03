@@ -1,6 +1,8 @@
 <html>
 <head>
 <script src="//code.jquery.com/jquery-2.0.3.min.js"></script>
+<link rel="stylesheet" href="./colorbox.css"/>
+<script src="./jquery-colorbox-min.js"></script>
 <title>user_ids</title>
 <script>
 var page_idx = -1;
@@ -97,7 +99,13 @@ function userActivities( user_id ){
 
           var new_time = ( new Date( datetime ) ).getTime();
           if( i == 0 ){
-            $('#replay_web').html('<iframe id="replay_iframe" src="' + activity.body.url + '" width="90%" height="90%"></iframe>');
+            $('#replay_web').html('<iframe class="iframe" id="replay_iframe" src="./spoof?url=' + activity.body.url + '" width="90%" height="90%"></iframe>');
+            $('.iframe').colorbox({
+              iframe: true,
+              width: "90%",
+              height: "90%",
+              opacity: 0.7
+            });
           }else{
             var ms = new_time - last_time;
             var replay_page = { id: id, datetime: datetime, ms: ms, type: activity.type };
@@ -191,4 +199,3 @@ function replay_page( page_idx ){
 <div id="replay_web"></div>
 </body>
 </html>
-

@@ -19,7 +19,7 @@ var express = require( 'express' ),
     bodyParser = require( 'body-parser' ),
     ejs = require( 'ejs' ),
     fs = require( 'fs' ),
-    http = require( 'http' ),
+    request = require( 'request' ),
     app = express();
 var settings = require( './settings' );
 var cloudant = cloudantlib( { account: settings.cloudant_username, password: settings.cloudant_password } );
@@ -351,7 +351,39 @@ app.post( '/search', function( req, res ){
     res.end();
 });
 
+//. Anti Cross Site
+app.get( '/spoof', function( req, res ){
+  var url = req.params.url;
+  if( url ){
+    var basehost = '';
+    var n1 = url.indexOf( '//' );
+    if( n1 > -1 ){
+      var n2 = url.indexOf( '/', n1 + 2 );
+      if( n2 > n1 + 2 ){
+        baseurl = url.substring( 0, n2 + 1 );
+      }
+    }
+
+    var options1 = { url url, method: 'GET' };
+    request( options1, ( err1, res1, body1 ) => {
+      if( err1 ){
+        res.status( 400 );
+        res.write( JSON.stringify( { status: false, message: err1 }, 2, null ) );
+        res.end();
+      }else{
+        var n0 = body1.toLowerCase().indexOf( '<head>' );
+        if( n0 > -1 ){
+          body1 = body1.substring( 0, n0 + 6 )
+              + '<base host="' + basehost + '<"/>';
+              + body1.substring( n0 + 6 );
+        }
+        res.write( body1 );
+        res.end();
+      }
+    });
+  }
+});
+
+
 app.listen( port );
 console.log( "server starting on " + port + " ..." );
-
-
